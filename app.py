@@ -37,7 +37,7 @@ class MainHandler(tornado.web.RequestHandler):
         self.set_status(201)
         return self.write(created_student)
 
-    async def put(self, student_id, **kwargs):
+    async def put(self, student_id):
         student = tornado.escape.json_decode(self.request.body)
         await self.settings["db"]["students"].update_one(
             {"_id": student_id}, {"$set": student}
