@@ -11,8 +11,8 @@ db = client.college
 
 
 class MainHandler(tornado.web.RequestHandler):
-    async def get(self, **kwargs):
-        if (student_id := kwargs.get("student_id")) is not None:
+    async def get(self, student_id=None):
+        if student_id is not None:
             if (
                 student := await self.settings["db"]["students"].find_one(
                     {"_id": student_id}
@@ -37,29 +37,27 @@ class MainHandler(tornado.web.RequestHandler):
         self.set_status(201)
         return self.write(created_student)
 
-    async def put(self, **kwargs):
-        if (student_id := kwargs.get("student_id")) is not None:
-            student = tornado.escape.json_decode(self.request.body)
-            await self.settings["db"]["students"].update_one(
-                {"_id": student_id}, {"$set": student}
-            )
+    async def put(self, student_id, **kwargs):
+        student = tornado.escape.json_decode(self.request.body)
+        await self.settings["db"]["students"].update_one(
+            {"_id": student_id}, {"$set": student}
+        )
 
-            if (
-                updated_student := await self.settings["db"]["students"].find_one(
-                    {"_id": student_id}
-                )
-            ) is not None:
-                return self.write(updated_student)
+        if (
+            updated_student := await self.settings["db"]["students"].find_one(
+                {"_id": student_id}
+            )
+        ) is not None:
+            return self.write(updated_student)
 
         raise tornado.web.HTTPError(404)
 
-    async def delete(self, **kwargs):
-        if (student_id := kwargs.get("student_id")) is not None:
-            delete_result = await db["students"].delete_one({"_id": student_id})
+    async def delete(self, student_id):
+        delete_result = await db["students"].delete_one({"_id": student_id})
 
-            if delete_result.deleted_count == 1:
-                self.set_status(204)
-                return self.finish()
+        if delete_result.deleted_count == 1:
+            self.set_status(204)
+            return self.finish()
 
         raise tornado.web.HTTPError(404)
 
